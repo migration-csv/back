@@ -1,9 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, abort
 from flask_cors import CORS
 from src.functions import *
 
 app = Flask(__name__)
 CORS(app)
+
+uploads_dir = './uploads'
 
 @app.route('/tables/<table_name>', methods=['GET'])
 def get_data(table_name):
@@ -39,7 +41,6 @@ def upload_csv(table_name):
         if file_name == '':
             return "No selected file", 400
         
-        uploads_dir = './uploads'
         if not os.path.exists(uploads_dir):
             os.makedirs(uploads_dir)
         file_path = os.path.join(uploads_dir, file_name)
@@ -51,6 +52,18 @@ def upload_csv(table_name):
     except Exception as e:
         app.logger.error(f"Error processing file: {e}")
         return str(e), 500
+    
+@app.route('/download/<file_name>', methods=['GET'])
+def download_file(file_name):
+    try:
+        file_path = os.path.join(uploads_dir, file_name)
+        if os.path.isfile(file_path):
+            return send_from_directory(uploads_dir, file_name, as_attachment=True)
+        else:
+            abort(404)
+    except Exception as e:
+        app.logger.error(f"Error downloading file: {e}")
+        abort(500)
 
 @app.route('/files/<table_name>/<id>/', methods=['DELETE'])
 def delete_data(table_name, id):
