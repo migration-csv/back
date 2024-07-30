@@ -38,13 +38,14 @@ class DatabaseHandler:
         except (Exception, Error) as error:
             raise error
 
-    def deleteRow(self, tableName, id):
+    def deleteRow(self, tableName, file_name):
         try:
-            self.__cursor.execute(f"DELETE FROM {tableName} WHERE id = %s", (id,))
+            self.__cursor.execute(f"DELETE FROM {tableName} WHERE file_name = %s", (file_name,))
             self.__connection.commit()
 
         except (Exception, Error) as error:
             raise error
+
     
     def insertCsvFile(self, tableName, file):
         try:

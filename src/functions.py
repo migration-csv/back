@@ -49,10 +49,10 @@ def insertData(tableName, data):
     except Exception as e:
         raise e
     
-def deleteData(tableName, id):
+def deleteData(tableName, file_name):
     try:
         dataBase.connect()
-        dataBase.deleteRow(tableName, id)
+        dataBase.deleteRow(tableName, file_name)
         dataBase.disconnect() 
     except Exception as e:
         raise e
