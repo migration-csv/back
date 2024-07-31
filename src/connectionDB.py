@@ -30,12 +30,33 @@ class DatabaseHandler:
             self.__cursor.close()
             self.__connection.close()
 
-    def selectAll(self, tableName):
+    def selectAll(self, tableName, limit=None, offset=None):
         try:
-            self.__cursor.execute(f"SELECT * FROM {tableName}")
-            records = self.__cursor.fetchall()
-            return records
+            column_query = f"""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = %s
+            """
+            self.__cursor.execute(column_query, (tableName,))
+            columns = [row[0] for row in self.__cursor.fetchall()]
+            
+            query = f"SELECT * FROM {tableName}"
+            if limit is not None and offset is not None:
+                query += f" LIMIT %s OFFSET %s"
+                self.__cursor.execute(query, (limit, offset))
+            else:
+                self.__cursor.execute(query)
+            rows = self.__cursor.fetchall()
+            
+            records = [dict(zip(columns, row)) for row in rows]
+            
+            count_query = f"SELECT COUNT(*) FROM {tableName}"
+            self.__cursor.execute(count_query)
+            total_count = self.__cursor.fetchone()[0]
+            
+            return records, total_count
         except (Exception, Error) as error:
+            print("Error in selectAll:", error)
             raise error
 
     def deleteRow(self, tableName, file_name):

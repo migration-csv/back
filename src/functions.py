@@ -24,14 +24,16 @@ def connect_db():
     except Exception as e:
         raise e
 
-def getAllData(tableName):
+def getAllData(tableName, page=1, per_page=20):
     try:
         dataBase.connect()
-        records = dataBase.selectAll(tableName)
+        offset = (page - 1) * per_page
+        records, total_count = dataBase.selectAll(tableName, limit=per_page, offset=offset)
         dataBase.disconnect()
-        return records
+        return records, total_count
     except Exception as e:
         raise e
+
 
 def insertCsvData(tableName, csvFile):
     try:
