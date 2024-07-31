@@ -38,12 +38,17 @@ def get_data(table_name):
 @app.route('/files', methods=['GET'])
 def get_files():
     try:
-        records = getAllData("files")
-        if records:
-            result = [{"id": record[0], "file_name": record[1], "update_at": record[2]} for record in records]
-            return jsonify(result), 200
-        return jsonify([]), 200
-    except Exception:
+        page = request.args.get('page', default=1, type=int)
+        per_page = request.args.get('per_page', default=20, type=int)
+
+        if page < 1 or per_page < 1:
+            return jsonify({"error": "Invalid page or per_page parameter"}), 400
+        
+        records, total_count = getAllData("files", page, per_page)     
+        count = total_count
+        return jsonify(records), 200
+    except Exception as e:
+        print(e)
         return jsonify({"error": "server error"}), 500
 
 @app.route('/files/<table_name>', methods=['POST'])
