@@ -34,6 +34,14 @@ def getAllData(tableName, page=1, per_page=20):
     except Exception as e:
         raise e
 
+def getFiles():
+    try:
+        dataBase.connect()
+        records = dataBase.selectFiles()
+        dataBase.disconnect()
+        return records
+    except Exception as e:
+        raise e
 
 def insertCsvData(tableName, csvFile):
     try:

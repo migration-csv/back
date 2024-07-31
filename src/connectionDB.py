@@ -30,6 +30,14 @@ class DatabaseHandler:
             self.__cursor.close()
             self.__connection.close()
 
+    def selectFiles(self):
+        try:
+            self.__cursor.execute("SELECT * FROM files")
+            records = self.__cursor.fetchall()
+            return records
+        except (Exception, Error) as error:
+            raise error
+
     def selectAll(self, tableName, limit=None, offset=None):
         try:
             column_query = f"""
