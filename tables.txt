@@ -1,0 +1,45 @@
+CREATE TABLE files (
+    id SERIAL PRIMARY KEY,
+    file_name TEXT NOT NULL,
+    update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE ratings (
+    userId INTEGER,
+    movieId INTEGER,
+    rating FLOAT,
+    timestamp INTEGER,
+    PRIMARY KEY (userId, movieId)
+);
+
+CREATE TABLE tags (
+    userId INTEGER,
+    movieId INTEGER,
+    tag TEXT,
+    timestamp INTEGER
+);
+
+CREATE TABLE movies (
+    movieId INTEGER PRIMARY KEY,
+    title TEXT,
+    genres TEXT
+);
+
+CREATE TABLE links (
+    movieId INTEGER PRIMARY KEY,
+    imdbId INTEGER,
+    tmdbId INTEGER
+);
+
+CREATE TABLE genome_scores (
+    movieId INTEGER,
+    tagId INTEGER,
+    relevance FLOAT,
+    PRIMARY KEY (movieId, tagId)
+);
+
+CREATE TABLE genome_tags (
+    tagId INTEGER PRIMARY KEY,
+    tag TEXT
+);

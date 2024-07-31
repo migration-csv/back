@@ -4,12 +4,15 @@ import queue
 from flask import Flask, request, jsonify, send_from_directory, abort
 from flask_cors import CORS
 from src.functions import getAllData, insertCsvData, insertData, deleteData
+from src.create_tables import create_tables
 
 app = Flask(__name__)
 CORS(app)
 
 UPLOADS_DIR = './uploads'
 file_queue = queue.Queue()
+
+create_tables()
 
 @app.route('/tables/<table_name>', methods=['GET'])
 def get_data(table_name):
@@ -60,7 +63,7 @@ def upload_csv(table_name):
         file.save(file_path)
         file_queue.put((table_name, file_path, file.filename))
 
-        return "File uploaded and queued for processing", 201
+        return jsonify({"message": "File uploaded and queued for processing"}), 201
     except Exception as e:
         app.logger.error(f"Error processing file: {e}")
         return jsonify({"error": "server error"}), 500
