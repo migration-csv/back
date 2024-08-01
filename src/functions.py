@@ -24,7 +24,7 @@ def connect_db():
     except Exception as e:
         raise e
 
-def getAllData(tableName, page=1, per_page=20):
+def getAllData(tableName, page=1, per_page=30):
     try:
         dataBase.connect()
         offset = (page - 1) * per_page

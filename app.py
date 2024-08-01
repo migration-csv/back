@@ -17,7 +17,7 @@ create_tables()
 @app.route('/tables/<table_name>', methods=['GET'])
 def get_data(table_name):
     page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=20, type=int)
+    per_page = request.args.get('per_page', default=30, type=int)
 
     if page < 1 or per_page < 1:
         return jsonify({"error": "Invalid page or per_page parameter"}), 400
