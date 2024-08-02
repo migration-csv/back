@@ -93,8 +93,10 @@ class DatabaseHandler:
         except (Exception, Error) as error:
             self.__connection.rollback()
             raise error
-    def searchMovies(self, genres, min_rating, user_id, year):
+        
+    def searchMovies(self, genres, min_rating, user_id, year, page=1, per_page=20):
         try:
+            offset = (page - 1) * per_page
             query = '''
                 SELECT mov.movieid, mov.title, mov.genres, rat.rating, rat.userid
                 FROM movies AS mov
@@ -119,9 +121,37 @@ class DatabaseHandler:
             if year:
                 query += " AND mov.title LIKE %s"
                 params.append(f"%{year}%")
+
+            query += " LIMIT %s OFFSET %s"
+            params.extend([per_page, offset])
             
             self.__cursor.execute(query, tuple(params))
             results = self.__cursor.fetchall()
-            return results
+            
+            count_query = '''
+                SELECT COUNT(*)
+                FROM movies AS mov
+                INNER JOIN ratings AS rat 
+                ON mov.movieId = rat.movieId
+                WHERE 1=1
+            '''
+            
+            count_params = params[:-2]  # Remove LIMIT e OFFSET
+            if genres:
+                count_query += " AND mov.genres LIKE %s"
+            
+            if min_rating:
+                count_query += " AND rat.rating >= %s"
+            
+            if user_id:
+                count_query += " AND rat.userid = %s"
+            
+            if year:
+                count_query += " AND mov.title LIKE %s"
+            
+            self.__cursor.execute(count_query, tuple(count_params))
+            total_count = self.__cursor.fetchone()[0]
+            
+            return results, total_count
         except (Exception, Error) as error:
             raise error

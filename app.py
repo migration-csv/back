@@ -42,18 +42,34 @@ def search_movies():
     year = request.args.get('year', 0)
     user_id = request.args.get('user_id', None)
     
-    results = searchMovies(genres, min_rating, user_id, year)
-    result = [
-                {
-                    "movie_id": record[0],
-                    "title": record[1],
-                    "genres": record[2],
-                    "rating": record[3],
-                    "user_id": record[4]
-                }
-                for record in results
-            ]
-    return jsonify(result)
+    # Adicionar parâmetros de paginação
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=20, type=int)
+
+    if page < 1 or per_page < 1:
+        return jsonify({"error": "Invalid page or per_page parameter"}), 400
+
+    try:
+        results, total_count = searchMovies(genres, min_rating, user_id, year, page, per_page)
+        result = [
+            {
+                "movie_id": record[0],
+                "title": record[1],
+                "genres": record[2],
+                "rating": record[3],
+                "user_id": record[4]
+            }
+            for record in results
+        ]
+        return jsonify({
+            "page": page,
+            "per_page": per_page,
+            "total_count": total_count,
+            "data": result
+        })
+    except Exception as e:
+        app.logger.error(f"Error searching movies: {e}")
+        return jsonify({"error": "server error"}), 500
 
 
 @app.route('/files', methods=['GET'])
