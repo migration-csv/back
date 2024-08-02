@@ -3,7 +3,7 @@ import threading
 import queue
 from flask import Flask, request, jsonify, send_from_directory, abort
 from flask_cors import CORS
-from src.functions import getAllData, insertCsvData, insertData, deleteData, getFiles
+from src.functions import getAllData, insertCsvData, insertData, deleteData, getFiles, searchMovies
 from src.create_tables import create_tables
 
 app = Flask(__name__)
@@ -33,6 +33,27 @@ def get_data(table_name):
     except Exception as e:
         app.logger.error(f"Error fetching data: {e}")
         return jsonify({"error": "server error"}), 500
+    
+
+@app.route('/search', methods=['GET'])
+def search_movies():
+    genres = request.args.get('genres', '')
+    min_rating = request.args.get('min_rating', 0)
+    year = request.args.get('year', 0)
+    user_id = request.args.get('user_id', None)
+    
+    results = searchMovies(genres, min_rating, user_id, year)
+    result = [
+                {
+                    "movie_id": record[0],
+                    "title": record[1],
+                    "genres": record[2],
+                    "rating": record[3],
+                    "user_id": record[4]
+                }
+                for record in results
+            ]
+    return jsonify(result)
 
 
 @app.route('/files', methods=['GET'])

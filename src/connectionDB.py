@@ -93,3 +93,35 @@ class DatabaseHandler:
         except (Exception, Error) as error:
             self.__connection.rollback()
             raise error
+    def searchMovies(self, genres, min_rating, user_id, year):
+        try:
+            query = '''
+                SELECT mov.movieid, mov.title, mov.genres, rat.rating, rat.userid
+                FROM movies AS mov
+                INNER JOIN ratings AS rat 
+                ON mov.movieId = rat.movieId
+                WHERE 1=1
+            '''
+            params = []
+            
+            if genres:
+                query += " AND mov.genres LIKE %s"
+                params.append(f'%{genres}%')
+            
+            if min_rating:
+                query += " AND rat.rating >= %s"
+                params.append(min_rating)
+            
+            if user_id:
+                query += " AND rat.userid = %s"
+                params.append(user_id)
+            
+            if year:
+                query += " AND mov.title LIKE %s"
+                params.append(f"%{year}%")
+            
+            self.__cursor.execute(query, tuple(params))
+            results = self.__cursor.fetchall()
+            return results
+        except (Exception, Error) as error:
+            raise error

@@ -42,6 +42,15 @@ def getFiles():
         return records
     except Exception as e:
         raise e
+    
+def searchMovies(genres, min_rating, user_id, year):
+    try:
+        dataBase.connect()
+        records = dataBase.searchMovies(genres, min_rating, user_id, year)
+        dataBase.disconnect()
+        return records
+    except Exception as e:
+        raise e
 
 def insertCsvData(tableName, csvFile):
     try:
