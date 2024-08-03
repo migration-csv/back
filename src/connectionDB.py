@@ -107,20 +107,21 @@ class DatabaseHandler:
             params = []
             
             if genres:
-                query += " AND mov.genres LIKE %s"
-                params.append(f'%{genres}%')
+                genres_placeholder = ', '.join(['%s'] * len(genres))
+                query += f" AND EXISTS (SELECT 1 FROM unnest(string_to_array(mov.genres, '|')) AS genre WHERE genre = ANY(ARRAY[{genres_placeholder}]))"
+                params.extend(genres)
             
-            if min_rating:
+            if min_rating is not None:
                 query += " AND rat.rating >= %s"
                 params.append(min_rating)
             
-            if user_id:
-                query += " AND rat.userid = %s"
-                params.append(user_id)
+            if user_id is not None:
+                query += " AND rat.userid::text LIKE %s"
+                params.append(f'%{user_id}%')
             
-            if year:
+            if year is not None:
                 query += " AND mov.title LIKE %s"
-                params.append(f"%{year}%")
+                params.append(f'%{year}%')
 
             query += " LIMIT %s OFFSET %s"
             params.extend([per_page, offset])
@@ -136,18 +137,23 @@ class DatabaseHandler:
                 WHERE 1=1
             '''
             
-            count_params = params[:-2]  # Remove LIMIT e OFFSET
+            count_params = []
+            
             if genres:
-                count_query += " AND mov.genres LIKE %s"
+                count_query += f" AND EXISTS (SELECT 1 FROM unnest(string_to_array(mov.genres, '|')) AS genre WHERE genre = ANY(ARRAY[{genres_placeholder}]))"
+                count_params.extend(genres)
             
-            if min_rating:
+            if min_rating is not None:
                 count_query += " AND rat.rating >= %s"
+                count_params.append(min_rating)
             
-            if user_id:
-                count_query += " AND rat.userid = %s"
+            if user_id is not None:
+                count_query += " AND rat.userid::text LIKE %s"
+                count_params.append(f'%{user_id}%')
             
-            if year:
+            if year is not None:
                 count_query += " AND mov.title LIKE %s"
+                count_params.append(f'%{year}%')
             
             self.__cursor.execute(count_query, tuple(count_params))
             total_count = self.__cursor.fetchone()[0]

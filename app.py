@@ -37,20 +37,23 @@ def get_data(table_name):
 
 @app.route('/search', methods=['GET'])
 def search_movies():
-    genres = request.args.get('genres', '')
+    # Obter os parâmetros da query string
+    genres_str = request.args.get('genres', '')
     min_rating = request.args.get('min_rating', 0)
     year = request.args.get('year', 0)
     user_id = request.args.get('user_id', None)
     
-    # Adicionar parâmetros de paginação
     page = request.args.get('page', default=1, type=int)
     per_page = request.args.get('per_page', default=20, type=int)
 
     if page < 1 or per_page < 1:
         return jsonify({"error": "Invalid page or per_page parameter"}), 400
 
+    genres = [genre.strip() for genre in genres_str.split(',') if genre.strip()]
+
     try:
         results, total_count = searchMovies(genres, min_rating, user_id, year, page, per_page)
+        
         result = [
             {
                 "movie_id": record[0],
@@ -61,6 +64,7 @@ def search_movies():
             }
             for record in results
         ]
+        
         return jsonify({
             "page": page,
             "per_page": per_page,
