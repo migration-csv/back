@@ -94,7 +94,7 @@ class DatabaseHandler:
             self.__connection.rollback()
             raise error
         
-    def searchMovies(self, genres, min_rating, user_id, year, page=1, per_page=20):
+    def searchMovies(self, genres, min_rating, user_id, year, page=1, per_page=30):
         try:
             offset = (page - 1) * per_page
             query = '''
@@ -102,7 +102,6 @@ class DatabaseHandler:
                 FROM movies AS mov
                 INNER JOIN ratings AS rat 
                 ON mov.movieId = rat.movieId
-                WHERE 1=1
             '''
             params = []
             
@@ -116,12 +115,13 @@ class DatabaseHandler:
                 params.append(min_rating)
             
             if user_id is not None:
-                query += " AND rat.userid::text LIKE %s"
-                params.append(f'%{user_id}%')
+                query += " AND rat.userid::text = %s"
+                params.append(f'{user_id}')
             
             if year is not None:
                 query += " AND mov.title LIKE %s"
-                params.append(f'%{year}%')
+                print(year)
+                params.append(f'%({year})%')
 
             query += " LIMIT %s OFFSET %s"
             params.extend([per_page, offset])
@@ -134,7 +134,6 @@ class DatabaseHandler:
                 FROM movies AS mov
                 INNER JOIN ratings AS rat 
                 ON mov.movieId = rat.movieId
-                WHERE 1=1
             '''
             
             count_params = []
@@ -154,7 +153,7 @@ class DatabaseHandler:
             
             if year is not None:
                 count_query += " AND mov.title LIKE %s"
-                count_params.append(f'%{year}%')
+                count_params.append(f'%({year})%')
             
             self.__cursor.execute(count_query, tuple(count_params))
             total_count = self.__cursor.fetchone()[0]

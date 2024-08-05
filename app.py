@@ -39,12 +39,12 @@ def get_data(table_name):
 def search_movies():
     # Obter os parâmetros da query string
     genres_str = request.args.get('genres', '')
-    min_rating = request.args.get('min_rating', 0)
-    year = request.args.get('year', 0)
+    min_rating = request.args.get('min_rating', 1)
+    year = request.args.get('year', None)
     user_id = request.args.get('user_id', None)
     
     page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=20, type=int)
+    per_page = request.args.get('per_page', default=30, type=int)
 
     if page < 1 or per_page < 1:
         return jsonify({"error": "Invalid page or per_page parameter"}), 400
@@ -80,7 +80,7 @@ def search_movies():
 def get_files():
     try:
         page = request.args.get('page', default=1, type=int)
-        per_page = request.args.get('per_page', default=20, type=int)
+        per_page = request.args.get('per_page', default=30, type=int)
 
         if page < 1 or per_page < 1:
             return jsonify({"error": "Invalid page or per_page parameter"}), 400
