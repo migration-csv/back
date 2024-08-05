@@ -107,9 +107,9 @@ class DatabaseHandler:
             params = []
             
             if genres:
-                genres_placeholder = ', '.join(['%s'] * len(genres))
-                query += f" AND EXISTS (SELECT 1 FROM unnest(string_to_array(mov.genres, '|')) AS genre WHERE genre = ANY(ARRAY[{genres_placeholder}]))"
-                params.extend(genres)
+                for genre in genres:
+                    query += " AND mov.genres LIKE %s"
+                    params.append(f'%{genre}%')
             
             if min_rating is not None:
                 query += " AND rat.rating >= %s"
@@ -140,8 +140,9 @@ class DatabaseHandler:
             count_params = []
             
             if genres:
-                count_query += f" AND EXISTS (SELECT 1 FROM unnest(string_to_array(mov.genres, '|')) AS genre WHERE genre = ANY(ARRAY[{genres_placeholder}]))"
-                count_params.extend(genres)
+                for genre in genres:
+                    count_query += " AND mov.genres LIKE %s"
+                    count_params.append(f'%{genre}%')
             
             if min_rating is not None:
                 count_query += " AND rat.rating >= %s"
@@ -161,3 +162,4 @@ class DatabaseHandler:
             return results, total_count
         except (Exception, Error) as error:
             raise error
+
