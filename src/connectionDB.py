@@ -93,72 +93,63 @@ class DatabaseHandler:
         except (Exception, Error) as error:
             self.__connection.rollback()
             raise error
+
+    def createIndexSearchMovies(self):
+        try:
+            self.__cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_movies_ratings
+                ON movies USING btree (movieId, title);
+            """)
+            self.__connection.commit()
+        except (Exception, Error) as error:
+            self.__connection.rollback()
+            raise error
         
-    def searchMovies(self, genres, min_rating, user_id, year, page=1, per_page=30):
+    def searchMovies(self, genres, min_rating, year, total_ratings, page=1, per_page=30):
         try:
             offset = (page - 1) * per_page
-            query = '''
-                SELECT mov.movieid, mov.title, mov.genres, rat.rating, rat.userid
-                FROM movies AS mov
-                INNER JOIN ratings AS rat 
-                ON mov.movieId = rat.movieId
-            '''
+            
+            # Base query with CTE
+            query_base = """
+                WITH filtered_ratings AS (
+                    SELECT movieid, title, genres, avg_rating, rating_count
+                    FROM movie_ratings
+                    %s
+                )
+                SELECT 
+                    movieid, 
+                    title, 
+                    genres, 
+                    avg_rating, 
+                    rating_count, 
+                    (SELECT COUNT(*) FROM filtered_ratings) AS total_count
+                FROM filtered_ratings
+                LIMIT %s OFFSET %s;
+            """
+            conditions = []
             params = []
             
-            if genres:
-                for genre in genres:
-                    query += " AND mov.genres LIKE %s"
-                    params.append(f'%{genre}%')
-            
             if min_rating is not None:
-                query += " AND rat.rating >= %s"
+                conditions.append(" WHERE avg_rating >= %s")
                 params.append(min_rating)
             
-            if user_id is not None:
-                query += " AND rat.userid::text = %s"
-                params.append(f'{user_id}')
-            
-            if year is not None:
-                query += " AND mov.title LIKE %s"
-                print(year)
-                params.append(f'%({year})%')
-
-            query += " LIMIT %s OFFSET %s"
-            params.extend([per_page, offset])
-            
-            self.__cursor.execute(query, tuple(params))
-            results = self.__cursor.fetchall()
-            
-            count_query = '''
-                SELECT COUNT(*)
-                FROM movies AS mov
-                INNER JOIN ratings AS rat 
-                ON mov.movieId = rat.movieId
-            '''
-            
-            count_params = []
-            
             if genres:
-                for genre in genres:
-                    count_query += " AND mov.genres LIKE %s"
-                    count_params.append(f'%{genre}%')
-            
-            if min_rating is not None:
-                count_query += " AND rat.rating >= %s"
-                count_params.append(min_rating)
-            
-            if user_id is not None:
-                count_query += " AND rat.userid::text LIKE %s"
-                count_params.append(f'%{user_id}%')
+                genre_filters = " AND ".join([f"genres LIKE %s" for _ in genres])
+                conditions.append(f"({genre_filters})")
+                params.extend([f'%{genre}%' for genre in genres])
+
+            if total_ratings is not None:
+                conditions.append("rating_count >= %s")
+                params.append(total_ratings)
             
             if year is not None:
-                count_query += " AND mov.title LIKE %s"
-                count_params.append(f'%({year})%')
-            
-            self.__cursor.execute(count_query, tuple(count_params))
-            total_count = self.__cursor.fetchone()[0]
-            
-            return results, total_count
+                conditions.append("title LIKE %s")
+                params.append(f'%({year})%')
+            conditions_str = " AND ".join(conditions)
+            query = query_base % (conditions_str, per_page, offset) 
+            self.__cursor.execute(query, params)
+            results = self.__cursor.fetchall()
+            return results
+        
         except (Exception, Error) as error:
             raise error
-

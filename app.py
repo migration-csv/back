@@ -37,14 +37,12 @@ def get_data(table_name):
 
 @app.route('/search', methods=['GET'])
 def search_movies():
-    # Obter os parâmetros da query string
     genres_str = request.args.get('genres', '')
     min_rating = request.args.get('min_rating', 1)
-    year = request.args.get('year', None)
-    user_id = request.args.get('user_id', None)
-    
+    year = request.args.get('year', None)   
     page = request.args.get('page', default=1, type=int)
     per_page = request.args.get('per_page', default=30, type=int)
+    total_ratings = request.args.get('total_ratings', None)
 
     if page < 1 or per_page < 1:
         return jsonify({"error": "Invalid page or per_page parameter"}), 400
@@ -52,23 +50,23 @@ def search_movies():
     genres = [genre.strip() for genre in genres_str.split(',') if genre.strip()]
 
     try:
-        results, total_count = searchMovies(genres, min_rating, user_id, year, page, per_page)
-        
+        results = searchMovies(genres, min_rating, year, total_ratings, page, per_page)
+        total_count = results[0][5]
         result = [
             {
                 "movie_id": record[0],
                 "title": record[1],
                 "genres": record[2],
-                "rating": record[3],
-                "user_id": record[4]
+                "rating": round(record[3], 2),
+                "total_ratings": record[4]
             }
             for record in results
         ]
         
         return jsonify({
+            "total_count": total_count,
             "page": page,
             "per_page": per_page,
-            "total_count": total_count,
             "data": result
         })
     except Exception as e:

@@ -43,10 +43,11 @@ def getFiles():
     except Exception as e:
         raise e
     
-def searchMovies(genres, min_rating, user_id, year, page=1, per_page=30):
+def searchMovies(genres, min_rating, year,total_ratings, page=1, per_page=30):
     try:
         dataBase.connect()
-        records = dataBase.searchMovies(genres, min_rating, user_id, year, page, per_page)
+        dataBase.createIndexSearchMovies()
+        records = dataBase.searchMovies(genres, min_rating, year, total_ratings, page, per_page)
         dataBase.disconnect()
         return records
     except Exception as e:
