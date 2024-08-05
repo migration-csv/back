@@ -23,17 +23,28 @@ def get_data(table_name):
         return jsonify({"error": "Invalid page or per_page parameter"}), 400
 
     try:
-        records, total_count = getAllData(table_name, page, per_page)
+        columns, records = getAllData(table_name, page, per_page)
+        total_count_index = len(columns) - 1
+        total_count = records[0][total_count_index]
+        results = []
+        for record in records:
+            result = {}
+            for i, column in enumerate(columns):
+                if column == "total_count":
+                    continue
+                result[column] = record[i]
+            results.append(result)
+        columns.pop()
         return jsonify({
             "page": page,
             "per_page": per_page,
+            "data": results,
             "total_count": total_count,
-            "data": records
+            "columns": columns
         })
     except Exception as e:
-        app.logger.error(f"Error fetching data: {e}")
         return jsonify({"error": "server error"}), 500
-    
+
 
 @app.route('/search', methods=['GET'])
 def search_movies():

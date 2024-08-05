@@ -28,9 +28,9 @@ def getAllData(tableName, page=1, per_page=30):
     try:
         dataBase.connect()
         offset = (page - 1) * per_page
-        records, total_count = dataBase.selectAll(tableName, limit=per_page, offset=offset)
+        columns, records = dataBase.selectAll(tableName, limit=per_page, offset=offset)
         dataBase.disconnect()
-        return records, total_count
+        return columns, records
     except Exception as e:
         raise e
 

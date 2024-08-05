@@ -37,36 +37,38 @@ class DatabaseHandler:
             return records
         except (Exception, Error) as error:
             raise error
-
-    def selectAll(self, tableName, limit=None, offset=None):
+        
+    def createViewMaterialized(self, tableName):
         try:
-            column_query = f"""
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name = %s
-            """
-            self.__cursor.execute(column_query, (tableName,))
-            columns = [row[0] for row in self.__cursor.fetchall()]
-            
-            query = f"SELECT * FROM {tableName}"
-            if limit is not None and offset is not None:
-                query += f" LIMIT %s OFFSET %s"
-                self.__cursor.execute(query, (limit, offset))
-            else:
-                self.__cursor.execute(query)
-            rows = self.__cursor.fetchall()
-            
-            records = [dict(zip(columns, row)) for row in rows]
-            
-            count_query = f"SELECT COUNT(*) FROM {tableName}"
-            self.__cursor.execute(count_query)
-            total_count = self.__cursor.fetchone()[0]
-            
-            return records, total_count
+            view_name = f"{tableName}_view"
+            query = f"CREATE MATERIALIZED VIEW IF NOT EXISTS {view_name} AS SELECT * FROM {tableName}"
+            self.__cursor.execute(query)
+            self.__connection.commit()
+            return view_name
         except (Exception, Error) as error:
-            print("Error in selectAll:", error)
+            self.__connection.rollback()
             raise error
 
+    def selectAll(self, tableName, limit=30, offset=0):
+        try:
+            view_name = self.createViewMaterialized(tableName)
+            query = f"""
+                WITH filtered_view AS (
+                    SELECT * FROM {view_name}
+                )
+                SELECT *,
+                       (SELECT COUNT(*) FROM filtered_view) AS total_count
+                FROM filtered_view
+                LIMIT %s OFFSET %s;
+            """
+            self.__cursor.execute(query, (limit, offset))
+            records = self.__cursor.fetchall()
+            columns = [desc[0] for desc in self.__cursor.description]
+            return columns, records
+        except (Exception, Error) as error:
+            self.__connection.rollback()
+            raise error
+    
     def deleteRow(self, tableName, file_name):
         try:
             self.__cursor.execute(f"DELETE FROM {tableName} WHERE file_name = %s", (file_name,))
