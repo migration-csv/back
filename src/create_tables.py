@@ -76,7 +76,7 @@ def create_tables():
         );
     ''')
     cur.execute('''
-        CREATE MATERIALIZED VIEW movie_ratings AS
+        CREATE MATERIALIZED VIEW IF NOT EXISTS movie_ratings AS
         SELECT 
             mov.movieid, 
             mov.title, 
