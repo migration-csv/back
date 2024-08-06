@@ -75,6 +75,19 @@ def create_tables():
             tag TEXT
         );
     ''')
+    cur.execute('''
+        CREATE MATERIALIZED VIEW movie_ratings AS
+        SELECT 
+            mov.movieid, 
+            mov.title, 
+            mov.genres, 
+            AVG(rat.rating) AS avg_rating, 
+            COUNT(*) AS rating_count
+        FROM movies AS mov
+        INNER JOIN ratings AS rat 
+        ON mov.movieid = rat.movieid
+        GROUP BY mov.movieid, mov.title, mov.genres;
+    ''')
     
     conn.commit()
     cur.close()
