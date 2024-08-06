@@ -107,6 +107,11 @@ class DatabaseHandler:
             self.__connection.rollback()
             raise error
         
+    def getTmdbId(self, movieId):
+        self.__cursor.execute(f"select tmdbid from links where movieid = {movieId}")
+        result = self.__cursor.fetchone()
+        return result
+    
     def searchMovies(self, genres, min_rating, year, total_ratings, page=1, per_page=30):
         try:
             offset = (page - 1) * per_page

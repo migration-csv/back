@@ -42,7 +42,16 @@ def getFiles():
         return records
     except Exception as e:
         raise e
-    
+
+def getTmdbId(movieId):
+    try:
+        dataBase.connect()
+        result = dataBase.getTmdbId(movieId)
+        dataBase.disconnect()
+        return result
+    except Exception as e:
+        raise e 
+
 def searchMovies(genres, min_rating, year,total_ratings, page=1, per_page=30):
     try:
         dataBase.connect()

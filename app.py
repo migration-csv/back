@@ -3,7 +3,7 @@ import threading
 import queue
 from flask import Flask, request, jsonify, send_from_directory, abort
 from flask_cors import CORS
-from src.functions import getAllData, insertCsvData, insertData, deleteData, getFiles, searchMovies
+from src.functions import getAllData, insertCsvData, insertData, deleteData, getFiles, searchMovies, getTmdbId
 from src.create_tables import create_tables
 
 app = Flask(__name__)
@@ -143,6 +143,11 @@ def delete_data(file_name):
         os.remove(file_path)
     deleteData("files", file_name)
     return jsonify({"res": "Row deleted"}), 200
+
+@app.route("/movie/get-tmd-id/<movieId>", methods=["GET"])
+def get_tmdb_id(movieId):
+   tmdbId = getTmdbId(movieId)
+   return jsonify({"tmdbId": tmdbId[0]}), 200
 
 def process_files():
     while True:
