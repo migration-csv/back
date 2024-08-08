@@ -106,6 +106,15 @@ class DatabaseHandler:
         except (Exception, Error) as error:
             self.__connection.rollback()
             raise error
+    
+
+    def getColumnsTable(self, tableName):
+        try:
+            self.__cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{tableName}'")
+            columns = self.__cursor.fetchall()
+            return columns
+        except (Exception, Error) as error:
+            raise error
         
     def getTmdbId(self, movieId):
         self.__cursor.execute(f"select tmdbid from links where movieid = {movieId}")

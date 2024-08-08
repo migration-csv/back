@@ -52,6 +52,15 @@ def getTmdbId(movieId):
     except Exception as e:
         raise e 
 
+def getColumnsTable(tableName):
+    try:
+        dataBase.connect()
+        columns = dataBase.getColumnsTable(tableName)
+        dataBase.disconnect()
+        return columns
+    except Exception as e:  
+        raise e
+
 def searchMovies(genres, min_rating, year,total_ratings, page=1, per_page=30):
     try:
         dataBase.connect()
