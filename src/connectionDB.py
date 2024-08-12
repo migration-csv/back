@@ -101,6 +101,17 @@ class DatabaseHandler:
             self.__connection.rollback()
             raise error
 
+    def updateExecutionTime(self, file_name, execution_time):
+            try:
+                self.__cursor.execute('''
+                        UPDATE files
+                        SET execution_time = %s
+                        WHERE file_name = %s;
+                    ''', (execution_time, file_name))
+                self.__connection.commit()
+            except (Exception, Error) as error:
+                raise error
+
     def createIndexSearchMovies(self):
         try:
             self.__cursor.execute("""

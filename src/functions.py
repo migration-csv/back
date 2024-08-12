@@ -1,4 +1,5 @@
 import os
+import time
 from dotenv import load_dotenv
 from src.connectionDB import DatabaseHandler
 
@@ -71,10 +72,14 @@ def searchMovies(genres, min_rating, year,total_ratings, page=1, per_page=30):
     except Exception as e:
         raise e
 
-def insertCsvData(tableName, csvFile):
+def insertCsvData(tableName, csvFile, file_name):
     try:
         dataBase.connect()
+        start_time = time.time()
         dataBase.insertCsvFile(tableName, csvFile)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        dataBase.updateExecutionTime(file_name, execution_time)
         dataBase.disconnect()    
     except Exception as e:
         raise e

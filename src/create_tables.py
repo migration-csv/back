@@ -1,5 +1,6 @@
 import os
 import psycopg2
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,7 +21,8 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS files (
             id serial primary key,
             file_name varchar(100),
-	        update_at TIMESTAMP DEFAULT NOW()
+	        update_at TIMESTAMP DEFAULT NOW(),
+	        execution_time FLOAT DEFAULT 0
         );
     ''')
 

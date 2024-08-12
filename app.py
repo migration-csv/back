@@ -164,7 +164,7 @@ def process_files():
         table_name, file_path, file_name = file_queue.get()
         try:
             insertData("files", file_name)
-            insertCsvData(table_name, file_path)
+            insertCsvData(table_name, file_path, file_name)
             app.logger.info(f"File processed: {file_name}")
         except Exception as e:
             app.logger.error(f"Error processing file {file_name}: {e}")
