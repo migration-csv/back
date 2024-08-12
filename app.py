@@ -99,7 +99,8 @@ def get_files():
                 {
                     "id": record[0],
                     "file_name": record[1],
-                    "update_at": record[2]
+                    "update_at": record[2],
+                    "execution_time": record[3],
                 }
                 for record in records
             ]
