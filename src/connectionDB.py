@@ -1,6 +1,10 @@
 import psycopg2
 from psycopg2 import Error
 
+movie_ratings_tables = [
+    "movies",
+    "ratings"
+]
 
 class DatabaseHandler:
     def __init__(self, user, password, host, port, database):
@@ -83,10 +87,11 @@ class DatabaseHandler:
             with open(file, 'r') as file:
                 self.__cursor.copy_expert(f"COPY {tableName} FROM STDIN WITH CSV HEADER", file)
                 self.__connection.commit()
+                if tableName in movie_ratings_tables:
+                    self.refreshMaterializedView("movie_ratings")
             
         except (Exception, Error) as error:
             raise error
-
     def insertRow(self, tableName, value):
         try:
             query = f"INSERT INTO {tableName} (file_name) VALUES (%s) RETURNING id"
@@ -120,6 +125,14 @@ class DatabaseHandler:
         self.__cursor.execute(f"select tmdbid from links where movieid = {movieId}")
         result = self.__cursor.fetchone()
         return result
+
+    def refreshMaterializedView(self, view_name):
+            try:
+                self.__cursor.execute(f"REFRESH MATERIALIZED VIEW {view_name}")
+                self.__connection.commit()
+            except (Exception, Error) as error:
+                self.__connection.rollback()
+                raise error
     
     def searchMovies(self, genres, min_rating, year, total_ratings, page=1, per_page=30):
         try:
